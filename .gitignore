@@ -1,3 +1,7 @@
-.DS_Store
-SMOT Landing _standalone_*
-SMOT Landing improved.html
+node_modules/
+dist/
+.env
+*.db
+backend/node_modules/
+backend/dist/
+backend/.env

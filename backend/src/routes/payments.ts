@@ -4,7 +4,18 @@ import Stripe from 'stripe';
 import db from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+function getStripe(): Stripe {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error('STRIPE_SECRET_KEY is not set');
+  }
+  if (!key.startsWith('sk_')) {
+    throw new Error('STRIPE_SECRET_KEY is invalid (must start with sk_)');
+  }
+  return new Stripe(key);
+}
+
+const stripe = getStripe();
 const router = Router();
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 

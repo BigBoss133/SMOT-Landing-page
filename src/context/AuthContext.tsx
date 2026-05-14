@@ -1,5 +1,5 @@
 import {
-  createContext, useContext, useMemo, useState, useEffect,
+  createContext, useContext, useMemo, useState, useEffect, useCallback,
   type PropsWithChildren,
 } from "react";
 import * as api from "../services/api";
@@ -8,7 +8,6 @@ interface User { id: string; email: string }
 
 interface AuthContextValue {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
@@ -18,34 +17,46 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem("smot-token"));
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) return;
-    api.getMe(token).then(setUser).catch(() => { setToken(null); localStorage.removeItem("smot-token"); });
-  }, [token]);
+    api.getMe()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
+    const res = await api.login(email, password);
+    setUser(res.user);
+  }, []);
+
+  const register = useCallback(async (email: string, password: string) => {
+    const res = await api.register(email, password);
+    setUser(res.user);
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await api.logout();
+    } catch {
+      // ignore
+    }
+    setUser(null);
+  }, []);
 
   const value = useMemo<AuthContextValue>(() => ({
-    user, token, isAuthenticated: !!token,
-    login: async (email, password) => {
-      const res = await api.login(email, password);
-      localStorage.setItem("smot-token", res.token);
-      setToken(res.token);
-      setUser(res.user);
-    },
-    register: async (email, password) => {
-      const res = await api.register(email, password);
-      localStorage.setItem("smot-token", res.token);
-      setToken(res.token);
-      setUser(res.user);
-    },
-    logout: () => {
-      localStorage.removeItem("smot-token");
-      setToken(null);
-      setUser(null);
-    },
-  }), [token, user]);
+    user,
+    isAuthenticated: !!user && !loading,
+    login,
+    register,
+    logout,
+  }), [user, loading, login, register, logout]);
+
+  if (loading) {
+    return <div style={{ display: "none" }} />;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

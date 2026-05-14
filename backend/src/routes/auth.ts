@@ -1,11 +1,20 @@
-import { Router } from 'express';
+import { Router, CookieOptions } from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
 import { z } from 'zod';
 import db from '../db';
 import { generateToken, authMiddleware, AuthRequest } from '../middleware/auth';
 
 const router = Router();
+
+const COOKIE_OPTS: CookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+  path: '/',
+};
 
 const registerSchema = z.object({
   email: z.string().email('Email non valida'),
@@ -31,7 +40,8 @@ router.post('/register', (req, res) => {
 
   const user = db.prepare('SELECT id, email, created_at FROM users WHERE id = ?').get(id) as any;
   const token = generateToken(user);
-  res.status(201).json({ user, token });
+  res.cookie('smot-token', token, COOKIE_OPTS);
+  res.status(201).json({ user });
 });
 
 router.post('/login', (req, res) => {
@@ -47,12 +57,32 @@ router.post('/login', (req, res) => {
 
   const token = generateToken(user);
   const { password_hash, ...safeUser } = user;
-  res.json({ user: safeUser, token });
+  res.cookie('smot-token', token, COOKIE_OPTS);
+  res.json({ user: safeUser });
 });
 
-router.get('/me', authMiddleware, (req: AuthRequest, res) => {
-  const { password_hash, ...safeUser } = req.user!;
-  res.json(safeUser);
+router.get('/me', (req, res) => {
+  const token = req.cookies?.['smot-token'];
+  if (!token) {
+    return res.status(401).json({ error: 'Non autenticato' });
+  }
+
+  try {
+    const JWT_SECRET = process.env.JWT_SECRET!;
+    const payload = jwt.verify(token, JWT_SECRET) as { id: string };
+    const user = db.prepare('SELECT id, email, created_at FROM users WHERE id = ?').get(payload.id) as any;
+    if (!user) {
+      return res.status(401).json({ error: 'Utente non trovato' });
+    }
+    res.json(user);
+  } catch {
+    return res.status(401).json({ error: 'Token non valido' });
+  }
+});
+
+router.post('/logout', (_req, res) => {
+  res.clearCookie('smot-token', { path: '/' });
+  res.json({ ok: true });
 });
 
 export default router;

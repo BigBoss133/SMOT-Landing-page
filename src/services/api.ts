@@ -1,8 +1,9 @@
-const BASE = "http://localhost:3000/api";
+const BASE = import.meta.env.VITE_API_URL ?? "/api";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     headers: { "Content-Type": "application/json", ...options?.headers },
+    credentials: "include",
     ...options,
   });
   if (!res.ok) {
@@ -12,28 +13,26 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-function authHeaders(token: string): HeadersInit {
-  return { Authorization: `Bearer ${token}` };
-}
-
 export function register(email: string, password: string) {
-  return request<{ token: string; user: { id: string; email: string } }>(
+  return request<{ user: { id: string; email: string } }>(
     "/auth/register",
     { method: "POST", body: JSON.stringify({ email, password }) }
   );
 }
 
 export function login(email: string, password: string) {
-  return request<{ token: string; user: { id: string; email: string } }>(
+  return request<{ user: { id: string; email: string } }>(
     "/auth/login",
     { method: "POST", body: JSON.stringify({ email, password }) }
   );
 }
 
-export function getMe(token: string) {
-  return request<{ id: string; email: string }>("/auth/me", {
-    headers: authHeaders(token),
-  });
+export function getMe() {
+  return request<{ id: string; email: string }>("/auth/me");
+}
+
+export function logout() {
+  return request<{ ok: boolean }>("/auth/logout", { method: "POST" });
 }
 
 export interface LicenseStatus {
@@ -47,16 +46,13 @@ export interface LicenseStatus {
   key: string;
 }
 
-export function getLicenseStatus(token: string) {
-  return request<LicenseStatus>("/license/status", {
-    headers: authHeaders(token),
-  });
+export function getLicenseStatus() {
+  return request<LicenseStatus>("/license/status");
 }
 
-export function createCheckout(token: string, plan: "monthly" | "annual") {
+export function createCheckout(plan: "monthly" | "annual") {
   return request<{ url: string }>("/payments/create-checkout", {
     method: "POST",
-    headers: authHeaders(token),
     body: JSON.stringify({ plan }),
   });
 }
@@ -69,8 +65,6 @@ export interface Payment {
   created_at: string;
 }
 
-export function getPaymentHistory(token: string) {
-  return request<{ payments: Payment[] }>("/payments/history", {
-    headers: authHeaders(token),
-  });
+export function getPaymentHistory() {
+  return request<{ payments: Payment[] }>("/payments/history");
 }

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { initDb } from './db';
 import authRouter from './routes/auth';
 import licenseRouter from './routes/license';
@@ -34,8 +35,9 @@ const PORT = process.env.PORT || 3000;
 
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }));
 
-app.use(cors({ origin: process.env.FRONTEND_URL }));
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 initDb();
 

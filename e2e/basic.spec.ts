@@ -7,7 +7,7 @@ test.describe("SMOT Landing Page", () => {
   });
 
   test("should navigate to pricing", async ({ page }) => {
-    await page.goto(/pricing");
+    await page.goto("/pricing");
     await expect(page.locator("h1")).toBeVisible();
   });
 
@@ -16,4 +16,3 @@ test.describe("SMOT Landing Page", () => {
     await expect(page.locator('input[type="email"]')).toBeVisible();
   });
 });
-

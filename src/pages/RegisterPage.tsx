@@ -28,8 +28,8 @@ export default function RegisterPage() {
     try {
       await register(email, password);
       navigate("/dashboard");
-    } catch (ex: any) {
-      setError(ex.message || "Errore durante la registrazione.");
+    } catch (ex) {
+      setError(ex instanceof Error ? ex.message : "Errore durante la registrazione.");
     } finally {
       setLoading(false);
     }

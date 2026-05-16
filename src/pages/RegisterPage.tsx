@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -37,6 +38,13 @@ export default function RegisterPage() {
 
   return (
     <div className="page">
+      <Helmet>
+        <title>Registrati — SMOT</title>
+        <meta name="description" content="Crea il tuo account SMOT e ottieni la licenza per l'archivio documentale intelligente offline." />
+        <meta property="og:title" content="Registrati — SMOT" />
+        <meta property="og:description" content="Registrati a SMOT e inizia a usare l'archivio documentale intelligente 100% offline." />
+        <meta property="og:url" content="https://smot.app/register" />
+      </Helmet>
       <Navbar />
       <div className="form-page">
         <div className="form-card">

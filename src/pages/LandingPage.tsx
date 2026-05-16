@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
@@ -17,6 +18,14 @@ export default function LandingPage() {
 
   return (
     <div className="page">
+      <Helmet>
+        <title>SMOT — Archivio documentale intelligente offline</title>
+        <meta name="description" content="SMOT è un'applicazione desktop nativa per archiviare, cercare e interrogare i tuoi documenti con IA locale. Zero cloud, massima privacy." />
+        <meta property="og:title" content="SMOT — Archivio documentale intelligente offline" />
+        <meta property="og:description" content="Archivia, cerca e interroga i tuoi documenti con IA locale. 100% offline, zero cloud." />
+        <meta property="og:url" content="https://smot.app/" />
+        <meta name="twitter:title" content="SMOT — Archivio documentale intelligente offline" />
+      </Helmet>
       <Navbar />
       <section className="hero">
         <h1>Il tuo archivio intelligente, completamente offline</h1>

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -21,6 +22,10 @@ export default function CheckoutPage() {
 
   return (
     <div className="page">
+      <Helmet>
+        <title>Checkout — SMOT</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <Navbar />
       <div className="form-page">
         <div className="form-card" style={{ textAlign: "center" }}>

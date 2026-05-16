@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -28,6 +29,13 @@ export default function LoginPage() {
 
   return (
     <div className="page">
+      <Helmet>
+        <title>Accedi — SMOT</title>
+        <meta name="description" content="Accedi al tuo account SMOT per gestire la licenza e scaricare l'app desktop." />
+        <meta property="og:title" content="Accedi — SMOT" />
+        <meta property="og:description" content="Accedi al tuo account SMOT per gestire la licenza." />
+        <meta property="og:url" content="https://smot.app/login" />
+      </Helmet>
       <Navbar />
       <div className="form-page">
         <div className="form-card">

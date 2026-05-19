@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
 import { z } from 'zod';
 import db from '../db';
@@ -69,9 +70,28 @@ router.post('/logout', (_req, res) => {
   res.json({ ok: true });
 });
 
-router.get('/me', authMiddleware, (req: AuthRequest, res) => {
-  const { password_hash, ...safeUser } = req.user!;
-  res.json(safeUser);
+router.get('/me', (req, res) => {
+  const token = req.cookies?.['smot-token'];
+  if (!token) {
+    return res.status(401).json({ error: 'Non autenticato' });
+  }
+
+  try {
+    const JWT_SECRET = process.env.JWT_SECRET!;
+    const payload = jwt.verify(token, JWT_SECRET) as { id: string };
+    const user = db.prepare('SELECT id, email, created_at FROM users WHERE id = ?').get(payload.id) as any;
+    if (!user) {
+      return res.status(401).json({ error: 'Utente non trovato' });
+    }
+    res.json(user);
+  } catch {
+    return res.status(401).json({ error: 'Token non valido' });
+  }
+});
+
+router.post('/logout', (_req, res) => {
+  res.clearCookie('smot-token', { path: '/' });
+  res.json({ ok: true });
 });
 
 export default router;

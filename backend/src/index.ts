@@ -27,13 +27,13 @@ validateEnv();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Stripe webhook needs raw body BEFORE json parser
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }));
 
 const allowedOrigins = process.env.FRONTEND_URL || 'http://localhost:5173';
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
+app.use(cookieParser());
 
 initDb();
 

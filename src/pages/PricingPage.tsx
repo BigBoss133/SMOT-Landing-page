@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { createCheckout } from "../services/api";
@@ -42,6 +43,13 @@ export default function PricingPage() {
 
   return (
     <div className="page">
+      <Helmet>
+        <title>Prezzi — SMOT | Piani Mensile e Annuale</title>
+        <meta name="description" content="Scegli il piano SMOT più adatto a te: Mensile a 9.99 € o Annuale a 89.99 €. Prova gratuita 7 giorni sul primo pagamento." />
+        <meta property="og:title" content="Prezzi — SMOT | Piani Mensile e Annuale" />
+        <meta property="og:description" content="Piano Mensile 9.99 € o Annuale 89.99 €. Prova gratuita 7 giorni, annulla quando vuoi." />
+        <meta property="og:url" content="https://smot.app/pricing" />
+      </Helmet>
       <Navbar />
       <section className="pricing">
         <h2>Scegli il tuo piano</h2>

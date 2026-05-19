@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { getLicenseStatus, getPaymentHistory, type LicenseStatus, type Payment } from "../services/api";
@@ -39,6 +40,10 @@ export default function DashboardPage() {
 
   return (
     <div className="page">
+      <Helmet>
+        <title>Dashboard — SMOT</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       <Navbar />
       <div className="dashboard container">
         <div className="dashboard-header">

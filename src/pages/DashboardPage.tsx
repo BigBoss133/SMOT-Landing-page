@@ -5,17 +5,16 @@ import Navbar from "../components/Navbar";
 import { Copy, Check, Download } from "lucide-react";
 
 export default function DashboardPage() {
-  const { user, token, logout } = useAuth();
+  const { user, logout } = useAuth();
   const [license, setLicense] = useState<LicenseStatus | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!token) return;
-    getLicenseStatus(token).then(setLicense).catch(() => setError("Impossibile caricare la licenza."));
-    getPaymentHistory(token).then((r) => setPayments(r.payments)).catch(() => {});
-  }, [token]);
+    getLicenseStatus().then(setLicense).catch(() => setError("Impossibile caricare la licenza."));
+    getPaymentHistory().then((r) => setPayments(r.payments)).catch(() => {});
+  }, []);
 
   const handleCopy = () => {
     if (!license) return;

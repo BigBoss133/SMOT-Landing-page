@@ -6,18 +6,15 @@ import { LoaderCircle } from "lucide-react";
 export default function CheckoutPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState("loading");
+  const sessionId = searchParams.get("session_id");
+  const [status] = useState(sessionId ? "success" : "error");
 
   useEffect(() => {
-    const sessionId = searchParams.get("session_id");
     if (sessionId) {
-      setStatus("success");
       const timer = setTimeout(() => navigate("/dashboard"), 2000);
       return () => clearTimeout(timer);
-    } else {
-      setStatus("error");
     }
-  }, [searchParams, navigate]);
+  }, [sessionId, navigate]);
 
   return (
     <div className="page">

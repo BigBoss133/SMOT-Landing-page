@@ -26,13 +26,14 @@ const plans = [
 ];
 
 export default function PricingPage() {
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handleCheckout = async (plan: "monthly" | "annual") => {
-    if (!isAuthenticated || !token) { navigate("/register"); return; }
+    if (!isAuthenticated) { navigate("/register"); return; }
     try {
-      const res = await createCheckout(token, plan);
+      const res = await createCheckout(plan);
+      // eslint-disable-next-line react-hooks/immutability -- Stripe checkout redirect requires window.location.href
       window.location.href = res.url;
     } catch {
       alert("Errore durante la creazione del checkout. Riprova.");

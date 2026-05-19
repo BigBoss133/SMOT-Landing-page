@@ -19,8 +19,8 @@ export default function LoginPage() {
     try {
       await login(email, password);
       navigate("/dashboard");
-    } catch (ex: any) {
-      setError(ex.message || "Email o password errati.");
+    } catch (ex: unknown) {
+      setError(ex instanceof Error ? ex.message : "Email o password errati.");
     } finally {
       setLoading(false);
     }

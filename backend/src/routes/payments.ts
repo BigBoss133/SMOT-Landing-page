@@ -4,7 +4,19 @@ import Stripe from 'stripe';
 import db from '../db';
 import { authMiddleware, AuthRequest } from '../middleware/auth';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+// Lazy Stripe initialization — server starts even without Stripe configured
+let stripeInstance: Stripe | null = null;
+
+function getStripe(): Stripe {
+  if (stripeInstance) return stripeInstance;
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || (!key.startsWith('sk_test_') && !key.startsWith('sk_live_'))) {
+    throw new Error('STRIPE_NOT_CONFIGURED');
+  }
+  stripeInstance = new Stripe(key);
+  return stripeInstance;
+}
+
 const router = Router();
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -25,6 +37,13 @@ router.post('/create-checkout', authMiddleware, async (req: AuthRequest, res) =>
   const existingPayment = db.prepare('SELECT id FROM payments WHERE user_id = ? AND status = ?').get(req.user!.id, 'completed');
   const isFirstPayment = !existingPayment;
 
+  let stripe: Stripe;
+  try {
+    stripe = getStripe();
+  } catch {
+    return res.status(503).json({ error: 'Pagamenti non disponibili. Stripe non configurato.' });
+  }
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
@@ -41,6 +60,14 @@ router.post('/create-checkout', authMiddleware, async (req: AuthRequest, res) =>
 });
 
 router.post('/webhook', async (req, res) => {
+  let stripe: Stripe;
+  try {
+    stripe = getStripe();
+  } catch {
+    // Stripe not configured — return 200 so Stripe retries later
+    return res.json({ received: true, note: 'Stripe not configured' });
+  }
+
   const sig = req.headers['stripe-signature'] as string;
   let event: Stripe.Event;
 

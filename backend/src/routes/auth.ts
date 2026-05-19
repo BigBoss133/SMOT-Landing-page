@@ -1,11 +1,23 @@
-import { Router } from 'express';
+import { Router, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
 import { z } from 'zod';
 import db from '../db';
-import { generateToken, authMiddleware, AuthRequest } from '../middleware/auth';
+import { generateToken, authMiddleware, AuthRequest, JWT_SECRET } from '../middleware/auth';
 
 const router = Router();
+
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+  path: '/',
+};
+
+function setAuthCookie(res: Response, token: string) {
+  res.cookie('smot-token', token, COOKIE_OPTIONS);
+}
 
 const registerSchema = z.object({
   email: z.string().email('Email non valida'),
@@ -31,7 +43,8 @@ router.post('/register', (req, res) => {
 
   const user = db.prepare('SELECT id, email, created_at FROM users WHERE id = ?').get(id) as any;
   const token = generateToken(user);
-  res.status(201).json({ user, token });
+  setAuthCookie(res, token);
+  res.status(201).json({ user });
 });
 
 router.post('/login', (req, res) => {
@@ -47,7 +60,13 @@ router.post('/login', (req, res) => {
 
   const token = generateToken(user);
   const { password_hash, ...safeUser } = user;
-  res.json({ user: safeUser, token });
+  setAuthCookie(res, token);
+  res.json({ user: safeUser });
+});
+
+router.post('/logout', (_req, res) => {
+  res.clearCookie('smot-token', { path: '/' });
+  res.json({ ok: true });
 });
 
 router.get('/me', authMiddleware, (req: AuthRequest, res) => {
